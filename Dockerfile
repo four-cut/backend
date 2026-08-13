@@ -1,7 +1,7 @@
 FROM eclipse-temurin:21-jdk-jammy AS builder
 WORKDIR /app
 COPY . .
-RUN ./gradlew bootJar --no-daemon
+RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre-jammy
 RUN groupadd -r appuser && useradd -r -g appuser appuser
