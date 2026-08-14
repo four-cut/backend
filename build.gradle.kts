@@ -4,6 +4,8 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
+extra["awsSdkVersion"] = "2.29.0"
+
 group = "com.fourcut"
 version = "0.0.1-SNAPSHOT"
 description = "Four-cut photo backend"
@@ -25,6 +27,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
+	implementation(platform("software.amazon.awssdk:bom:${property("awsSdkVersion")}"))
+	implementation("software.amazon.awssdk:s3")
+	implementation("com.google.zxing:core:3.5.3")
+	implementation("com.google.zxing:javase:3.5.3")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")

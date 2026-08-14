@@ -16,3 +16,11 @@ spring:
   h2:
     console:
       enabled: false
+
+fourcut:
+  s3:
+    bucket: test-bucket
+    region: ap-northeast-2
+    presigned-url-expiry-minutes: 10080
+  session:
+    expiry-minutes: 30

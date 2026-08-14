@@ -28,3 +28,11 @@ management:
     web:
       exposure:
         include: health,info
+
+fourcut:
+  s3:
+    bucket: ${AWS_S3_BUCKET:}
+    region: ${AWS_REGION:ap-northeast-2}
+    presigned-url-expiry-minutes: ${AWS_S3_PRESIGNED_URL_EXPIRY_MINUTES:10080}
+  session:
+    expiry-minutes: 30

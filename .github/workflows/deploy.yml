@@ -17,16 +17,21 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD
+          envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_S3_BUCKET
           script: |
             cd /home/parkdu7/four-cut
             git pull origin main
-            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\n' \
-              "$DB_USERNAME" "$DB_PASSWORD" "$DB_ROOT_PASSWORD" > .env
+            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\nAWS_ACCESS_KEY_ID=%s\nAWS_SECRET_ACCESS_KEY=%s\nAWS_REGION=%s\nAWS_S3_BUCKET=%s\n' \
+              "$DB_USERNAME" "$DB_PASSWORD" "$DB_ROOT_PASSWORD" \
+              "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" "$AWS_REGION" "$AWS_S3_BUCKET" > .env
             chmod 600 .env
             docker compose down app
             docker compose build app
