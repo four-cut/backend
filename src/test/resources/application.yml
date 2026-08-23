@@ -5,6 +5,9 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
+  flyway:
+    enabled: false
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -24,3 +27,15 @@ fourcut:
     presigned-url-expiry-minutes: 10080
   session:
     expiry-minutes: 30
+  jwt:
+    secret: test-secret-key-for-tests-only-do-not-use-in-production-0123456789
+    access-token-expiry-minutes: 60
+    refresh-token-expiry-days: 30
+  oauth:
+    kakao:
+      app-id: 999999
+      admin-key: test-admin-key
+    google:
+      client-ids: test-client-id.apps.googleusercontent.com
+  auth:
+    login-rate-limit-per-minute: 20
