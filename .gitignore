@@ -46,3 +46,5 @@ application-secret.yml
 logs/
 *.log
 
+### Plans (local working docs) ###
+plan/
