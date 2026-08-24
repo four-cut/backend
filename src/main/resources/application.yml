@@ -32,6 +32,10 @@ spring:
 
 server:
   port: 8080
+  # nginx 가 X-Forwarded-Proto/Host/Port 로 보내주는 원래 요청 정보를 Spring 이 반영하게 한다.
+  # 이게 없으면 Spring 은 자기 자신이 http:8080 으로 직접 요청받은 줄 알고, Swagger 등에
+  # 노출하는 서버 주소가 http 로 찍혀서 https 페이지에서 mixed content 로 차단된다.
+  forward-headers-strategy: framework
 
 management:
   endpoints:
