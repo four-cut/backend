@@ -60,9 +60,14 @@ public class Member extends BaseTimeEntity {
 		this.role = MemberRole.USER;
 	}
 
+	// nickname 만 null 이어도 기존 값을 유지한다. 애플은 이름을 최초 인가 시 딱 한 번만 주고
+	// 그 뒤로는 다시 주지 않으므로, 여기서 무조건 덮어쓰면 두 번째 로그인부터 이름이 지워진다.
+	// email/profileImageUrl 은 매 로그인마다 제공자가 다시 내려주는 값이라 그대로 동기화한다.
 	public void updateProfile(String email, String nickname, String profileImageUrl) {
 		this.email = email;
-		this.nickname = nickname;
+		if (nickname != null) {
+			this.nickname = nickname;
+		}
 		this.profileImageUrl = profileImageUrl;
 	}
 

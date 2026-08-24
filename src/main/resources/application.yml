@@ -60,5 +60,7 @@ fourcut:
       admin-key: ${KAKAO_ADMIN_KEY:}
     google:
       client-ids: ${GOOGLE_CLIENT_IDS:}
+    apple:
+      client-ids: ${APPLE_CLIENT_IDS:}
   auth:
     login-rate-limit-per-minute: ${LOGIN_RATE_LIMIT_PER_MINUTE:20}

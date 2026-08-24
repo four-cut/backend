@@ -40,7 +40,8 @@ class KakaoOAuthClientTest {
 	private static OAuthProperties properties() {
 		return new OAuthProperties(
 			new OAuthProperties.Kakao(APP_ID, "admin-key"),
-			new OAuthProperties.Google(List.of("client-id")));
+			new OAuthProperties.Google(List.of("client-id")),
+			new OAuthProperties.Apple(List.of()));
 	}
 
 	private void expectTokenInfo(long appId) {

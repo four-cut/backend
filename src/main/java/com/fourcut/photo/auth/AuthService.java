@@ -38,8 +38,8 @@ public class AuthService {
 		this.refreshTokenService = refreshTokenService;
 	}
 
-	public LoginResponse login(OAuthProvider provider, String credential) {
-		OAuthUserInfo userInfo = verifyCredential(provider, credential);
+	public LoginResponse login(OAuthProvider provider, String credential, String clientProvidedNickname) {
+		OAuthUserInfo userInfo = withClientNickname(verifyCredential(provider, credential), clientProvidedNickname);
 		MemberService.LoginMember loginMember = findOrCreate(userInfo);
 		Member member = loginMember.member();
 		log.info("소셜 로그인 성공. provider={} memberId={} newMember={}",
@@ -71,6 +71,20 @@ public class AuthService {
 
 	public void logout(String refreshToken) {
 		refreshTokenService.revoke(refreshToken);
+	}
+
+	// userInfo.nickname() 이 이미 있으면(카카오/구글) 무시한다. 애플처럼 토큰에 이름이 없는
+	// 경우에만, 클라이언트가 최초 로그인 요청에 실어 보낸 이름으로 채운다.
+	private OAuthUserInfo withClientNickname(OAuthUserInfo userInfo, String clientProvidedNickname) {
+		if (userInfo.nickname() != null || clientProvidedNickname == null || clientProvidedNickname.isBlank()) {
+			return userInfo;
+		}
+		return new OAuthUserInfo(
+			userInfo.provider(),
+			userInfo.providerId(),
+			userInfo.email(),
+			clientProvidedNickname,
+			userInfo.profileImageUrl());
 	}
 
 	private OAuthUserInfo verifyCredential(OAuthProvider provider, String credential) {

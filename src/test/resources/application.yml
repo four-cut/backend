@@ -37,5 +37,7 @@ fourcut:
       admin-key: test-admin-key
     google:
       client-ids: test-client-id.apps.googleusercontent.com
+    apple:
+      client-ids: ""
   auth:
     login-rate-limit-per-minute: 20

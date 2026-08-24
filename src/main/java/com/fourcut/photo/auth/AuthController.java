@@ -33,7 +33,7 @@ public class AuthController {
 		description = "provider 는 kakao 또는 google 입니다. token 은 카카오는 액세스 토큰, 구글은 ID 토큰입니다.")
 	@PostMapping("/login/{provider}")
 	public LoginResponse login(@PathVariable String provider, @Valid @RequestBody SocialLoginRequest request) {
-		return authService.login(OAuthProvider.from(provider), request.token());
+		return authService.login(OAuthProvider.from(provider), request.token(), request.nickname());
 	}
 
 	@Operation(summary = "토큰 재발급",

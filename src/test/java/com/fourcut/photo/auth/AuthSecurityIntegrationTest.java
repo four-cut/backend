@@ -92,8 +92,11 @@ class AuthSecurityIntegrationTest {
 			.andExpect(jsonPath("$.code").value("UNSUPPORTED_OAUTH_PROVIDER"));
 	}
 
+	// 구현체는 있지만 client-ids 가 아직 설정되지 않았다(Apple Developer 미가입). 이 상태에서는
+	// UNSUPPORTED_OAUTH_PROVIDER 로 응답해야 하고, AppleOAuthClient 단위 테스트가 이 경로를
+	// 이미 상세히 검증한다 — 여기서는 전체 스택을 통과해도 같은 응답이 나오는지만 확인한다.
 	@Test
-	void 애플은_아직_구현체가_없어_지원하지_않음으로_응답한다() throws Exception {
+	void 애플_클라이언트_아이디가_설정되지_않으면_지원하지_않음으로_응답한다() throws Exception {
 		mockMvc.perform(post("/api/auth/login/apple")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"token\":\"whatever\"}"))
