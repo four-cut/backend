@@ -59,4 +59,8 @@ public class FrameTemplate extends BaseTimeEntity {
 	public int slotCount() {
 		return slots.size();
 	}
+
+	public void updateAssetKey(String frameAssetKey) {
+		this.frameAssetKey = frameAssetKey;
+	}
 }
