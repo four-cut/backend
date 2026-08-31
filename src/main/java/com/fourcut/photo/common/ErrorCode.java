@@ -11,6 +11,7 @@ public enum ErrorCode {
 	INVALID_SHOT_INDEX(HttpStatus.BAD_REQUEST, "유효하지 않은 촬영 순번입니다."),
 	SHOT_COUNT_NOT_MET(HttpStatus.CONFLICT, "아직 필요한 장수만큼 촬영되지 않았습니다."),
 	INVALID_ARRANGEMENT(HttpStatus.BAD_REQUEST, "슬롯 배치 정보가 프레임과 일치하지 않습니다."),
+	INVALID_FRAME(HttpStatus.BAD_REQUEST, "프레임 정보가 유효하지 않습니다."),
 	ARRANGEMENT_NOT_READY(HttpStatus.CONFLICT, "아직 사진 배치가 완료되지 않았습니다."),
 	COMPOSITE_NOT_READY(HttpStatus.CONFLICT, "아직 합성된 이미지가 없습니다."),
 	VIDEO_NOT_FOUND(HttpStatus.NOT_FOUND, "촬영 영상을 찾을 수 없습니다."),
