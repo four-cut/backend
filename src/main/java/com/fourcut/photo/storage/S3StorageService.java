@@ -55,10 +55,22 @@ public class S3StorageService implements StorageService {
 
 	@Override
 	public String getUrl(String key) {
-		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+		return presign(GetObjectRequest.builder()
 			.bucket(s3Properties.bucket())
 			.key(key)
-			.build();
+			.build());
+	}
+
+	@Override
+	public String getDownloadUrl(String key, String filename) {
+		return presign(GetObjectRequest.builder()
+			.bucket(s3Properties.bucket())
+			.key(key)
+			.responseContentDisposition("attachment; filename=\"%s\"".formatted(filename))
+			.build());
+	}
+
+	private String presign(GetObjectRequest getObjectRequest) {
 		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
 			.signatureDuration(Duration.ofMinutes(s3Properties.presignedUrlExpiryMinutes()))
 			.getObjectRequest(getObjectRequest)

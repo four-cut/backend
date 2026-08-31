@@ -27,6 +27,13 @@ public class CaptureVideo extends BaseTimeEntity {
 	private PhotoSession session;
 
 	private String videoKey;
+
+	/**
+	 * QR PNG 의 저장 키.
+	 *
+	 * QR 의 주인은 이제 DownloadLink 다(QR 안에는 영상이 아니라 다운로드 페이지 주소가 들어 있다).
+	 * 이 컬럼은 예전 데이터와의 호환을 위해 같은 값을 계속 기록만 한다.
+	 */
 	private String qrCodeKey;
 	private Integer durationSeconds;
 

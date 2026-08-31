@@ -2,11 +2,12 @@ package com.fourcut.photo.video;
 
 import com.fourcut.photo.common.ApiException;
 import com.fourcut.photo.common.ErrorCode;
+import com.fourcut.photo.download.DownloadService;
+import com.fourcut.photo.download.dto.DownloadLinkResponse;
 import com.fourcut.photo.session.PhotoSession;
 import com.fourcut.photo.session.PhotoSessionRepository;
 import com.fourcut.photo.storage.StorageService;
 import com.fourcut.photo.video.dto.VideoUploadResponse;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -22,18 +23,18 @@ public class VideoService {
 	private final PhotoSessionRepository photoSessionRepository;
 	private final CaptureVideoRepository captureVideoRepository;
 	private final StorageService storageService;
-	private final QrCodeService qrCodeService;
+	private final DownloadService downloadService;
 
 	public VideoService(
 		PhotoSessionRepository photoSessionRepository,
 		CaptureVideoRepository captureVideoRepository,
 		StorageService storageService,
-		QrCodeService qrCodeService
+		DownloadService downloadService
 	) {
 		this.photoSessionRepository = photoSessionRepository;
 		this.captureVideoRepository = captureVideoRepository;
 		this.storageService = storageService;
-		this.qrCodeService = qrCodeService;
+		this.downloadService = downloadService;
 	}
 
 	public VideoUploadResponse uploadVideo(UUID sessionId, MultipartFile file, Integer durationSeconds) {
@@ -53,10 +54,9 @@ public class VideoService {
 			throw new UncheckedIOException(e);
 		}
 
-		String videoUrl = storageService.getUrl(videoKey);
-		String qrCodeKey = "qrcodes/%s.png".formatted(sessionId);
-		byte[] qrPng = qrCodeService.generatePng(videoUrl);
-		storageService.upload(qrCodeKey, new ByteArrayInputStream(qrPng), qrPng.length, "image/png");
+		// QR 은 영상 파일이 아니라 다운로드 페이지를 가리킨다. 사진도 같이 받아가야 하기 때문이다.
+		DownloadLinkResponse link = downloadService.issue(session);
+		String qrCodeKey = downloadService.qrCodeKey(sessionId);
 
 		captureVideoRepository.findBySessionId(sessionId)
 			.ifPresentOrElse(
@@ -64,15 +64,19 @@ public class VideoService {
 				() -> captureVideoRepository.save(new CaptureVideo(session, videoKey, qrCodeKey, durationSeconds))
 			);
 
-		return new VideoUploadResponse(videoUrl, storageService.getUrl(qrCodeKey));
+		return new VideoUploadResponse(storageService.getUrl(videoKey), link.qrCodeUrl(), link.downloadUrl());
 	}
 
 	@Transactional(readOnly = true)
 	public Optional<VideoUploadResponse> getVideo(UUID sessionId) {
 		return captureVideoRepository.findBySessionId(sessionId)
-			.map(video -> new VideoUploadResponse(
-				storageService.getUrl(video.getVideoKey()),
-				storageService.getUrl(video.getQrCodeKey())
-			));
+			.map(video -> {
+				DownloadLinkResponse link = downloadService.find(sessionId).orElse(null);
+				return new VideoUploadResponse(
+					storageService.getUrl(video.getVideoKey()),
+					link == null ? storageService.getUrl(video.getQrCodeKey()) : link.qrCodeUrl(),
+					link == null ? null : link.downloadUrl()
+				);
+			});
 	}
 }

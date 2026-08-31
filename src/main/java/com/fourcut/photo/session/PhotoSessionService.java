@@ -132,7 +132,7 @@ public class PhotoSessionService {
 	@Transactional(readOnly = true)
 	public SessionStatusResponse getStatus(UUID sessionId) {
 		PhotoSession session = getSessionOrThrow(sessionId);
-		return SessionStatusResponse.of(session, null, null, null);
+		return SessionStatusResponse.of(session, null, null, null, null);
 	}
 
 	PhotoSession getSessionOrThrow(UUID sessionId) {

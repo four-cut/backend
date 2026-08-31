@@ -10,18 +10,20 @@ public record SessionStatusResponse(
 	Long frameId,
 	String compositeImageUrl,
 	String videoUrl,
-	String qrCodeUrl
+	String qrCodeUrl,
+	String downloadUrl
 ) {
 
 	public static SessionStatusResponse of(PhotoSession session, String compositeImageUrl, String videoUrl,
-		String qrCodeUrl) {
+		String qrCodeUrl, String downloadUrl) {
 		return new SessionStatusResponse(
 			session.getId(),
 			session.getStatus(),
 			session.getFrameTemplate().getId(),
 			compositeImageUrl,
 			videoUrl,
-			qrCodeUrl
+			qrCodeUrl,
+			downloadUrl
 		);
 	}
 }
