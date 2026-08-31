@@ -4,6 +4,13 @@ spring:
   profiles:
     active: local
 
+  servlet:
+    multipart:
+      # Spring 기본값은 1MB 라 8컷 2배속 영상(약 2.3MB)이 그대로 막힌다.
+      # 촬영 영상 한 건만 올리므로 file 과 request 를 같은 값으로 둔다.
+      max-file-size: 20MB
+      max-request-size: 20MB
+
   http:
     client:
       connect-timeout: 2s

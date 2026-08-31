@@ -15,6 +15,7 @@ public enum ErrorCode {
 	COMPOSITE_NOT_READY(HttpStatus.CONFLICT, "아직 합성된 이미지가 없습니다."),
 	VIDEO_NOT_FOUND(HttpStatus.NOT_FOUND, "촬영 영상을 찾을 수 없습니다."),
 	INVALID_FILE(HttpStatus.BAD_REQUEST, "업로드된 파일이 유효하지 않습니다."),
+	FILE_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE, "업로드 파일 용량이 허용 한도를 초과했습니다."),
 	STORAGE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 저장 중 오류가 발생했습니다."),
 
 	UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인입니다."),
