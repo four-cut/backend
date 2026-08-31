@@ -3,6 +3,9 @@ package com.fourcut.photo.composite;
 import com.fourcut.photo.common.ApiException;
 import com.fourcut.photo.common.ErrorCode;
 import com.fourcut.photo.composite.dto.CompositeImageResponse;
+import com.fourcut.photo.composite.dto.CompositeUploadResponse;
+import com.fourcut.photo.download.DownloadService;
+import com.fourcut.photo.download.dto.DownloadLinkResponse;
 import com.fourcut.photo.frame.FrameSlot;
 import com.fourcut.photo.frame.FrameTemplate;
 import com.fourcut.photo.session.PhotoSession;
@@ -20,12 +23,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.imageio.ImageIO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -35,17 +40,66 @@ public class CompositeImageService {
 	private final SlotAssignmentRepository slotAssignmentRepository;
 	private final CompositeImageRepository compositeImageRepository;
 	private final StorageService storageService;
+	private final DownloadService downloadService;
 
 	public CompositeImageService(
 		PhotoSessionRepository photoSessionRepository,
 		SlotAssignmentRepository slotAssignmentRepository,
 		CompositeImageRepository compositeImageRepository,
-		StorageService storageService
+		StorageService storageService,
+		DownloadService downloadService
 	) {
 		this.photoSessionRepository = photoSessionRepository;
 		this.slotAssignmentRepository = slotAssignmentRepository;
 		this.compositeImageRepository = compositeImageRepository;
 		this.storageService = storageService;
+		this.downloadService = downloadService;
+	}
+
+	/**
+	 * 앱이 만든 최종 스트립을 받아 세션의 합성물로 저장한다.
+	 *
+	 * 서버 합성(compose)과 저장 자리를 공유해서, 다운로드 페이지는 어느 쪽으로 만들어졌든
+	 * "이 세션의 합성물" 하나만 보면 된다. 앱은 로고까지 얹은 결과를 갖고 있고 서버는 그걸
+	 * 다시 만들 수 없으므로, 배치나 촬영본 없이도 올릴 수 있어야 한다.
+	 */
+	public CompositeUploadResponse uploadComposite(UUID sessionId, MultipartFile file) {
+		PhotoSession session = photoSessionRepository.findById(sessionId)
+			.orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+		if (session.isExpired()) {
+			throw new ApiException(ErrorCode.SESSION_EXPIRED);
+		}
+		if (file.isEmpty()) {
+			throw new ApiException(ErrorCode.INVALID_FILE);
+		}
+
+		String key = "composites/%s/final.%s".formatted(sessionId, resolveExtension(file.getContentType()));
+		try {
+			storageService.upload(key, file.getInputStream(), file.getSize(), file.getContentType());
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+
+		compositeImageRepository.findBySessionId(sessionId)
+			.ifPresentOrElse(
+				existing -> existing.updateImageKey(key),
+				() -> compositeImageRepository.save(new CompositeImage(session, key))
+			);
+		session.markComposed();
+
+		// 영상보다 스트립이 먼저 올라올 수도 있어서 여기서도 링크를 보장한다.
+		DownloadLinkResponse link = downloadService.issue(session);
+		return new CompositeUploadResponse(storageService.getUrl(key), link.qrCodeUrl(), link.downloadUrl());
+	}
+
+	private String resolveExtension(String contentType) {
+		if ("image/jpeg".equals(contentType)) {
+			return "jpg";
+		}
+		if ("image/png".equals(contentType)) {
+			return "png";
+		}
+		throw new ApiException(ErrorCode.INVALID_FILE, "jpg 또는 png 이미지만 올릴 수 있습니다.");
 	}
 
 	public CompositeImageResponse compose(UUID sessionId) {
