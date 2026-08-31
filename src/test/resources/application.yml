@@ -27,6 +27,9 @@ fourcut:
     presigned-url-expiry-minutes: 10080
   session:
     expiry-minutes: 30
+  download:
+    base-url: https://test.fourcut.example
+    expiry-days: 7
   jwt:
     secret: test-secret-key-for-tests-only-do-not-use-in-production-0123456789
     access-token-expiry-minutes: 60

@@ -57,6 +57,11 @@ fourcut:
     presigned-url-expiry-minutes: ${AWS_S3_PRESIGNED_URL_EXPIRY_MINUTES:10080}
   session:
     expiry-minutes: 30
+  download:
+    # QR 에 담을 공개 주소. 비워 두면 요청에서 유추한다(nginx 가 준 X-Forwarded-* 를 반영).
+    base-url: ${DOWNLOAD_BASE_URL:}
+    # 다운로드 링크 수명. 세션 만료(30분)와 분리돼 있어서, 부스에서 한참 뒤에 QR 을 찍어도 열린다.
+    expiry-days: ${DOWNLOAD_LINK_EXPIRY_DAYS:7}
   jwt:
     secret: ${JWT_SECRET:}
     access-token-expiry-minutes: ${JWT_ACCESS_TOKEN_EXPIRY_MINUTES:60}

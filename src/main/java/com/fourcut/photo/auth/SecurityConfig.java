@@ -55,6 +55,8 @@ public class SecurityConfig {
 				// 컨트롤러는 이 둘뿐이고, 합성/영상은 /api/sessions 하위 경로다.
 				.requestMatchers("/api/frames/**").permitAll()
 				.requestMatchers("/api/sessions/**").permitAll()
+				// QR 로 들어오는 손님은 로그인하지 않는다. 토큰 자체가 열쇠다.
+				.requestMatchers("/d/**", "/api/downloads/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/webjars/**").permitAll()
 				.requestMatchers("/actuator/health", "/actuator/info").permitAll()
 				.anyRequest().authenticated())

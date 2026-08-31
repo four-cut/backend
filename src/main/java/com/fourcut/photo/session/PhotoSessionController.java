@@ -2,6 +2,9 @@ package com.fourcut.photo.session;
 
 import com.fourcut.photo.composite.CompositeImageService;
 import com.fourcut.photo.composite.dto.CompositeImageResponse;
+import com.fourcut.photo.composite.dto.CompositeUploadResponse;
+import com.fourcut.photo.download.DownloadService;
+import com.fourcut.photo.download.dto.DownloadLinkResponse;
 import com.fourcut.photo.session.dto.ArrangementRequest;
 import com.fourcut.photo.session.dto.CapturedPhotoResponse;
 import com.fourcut.photo.session.dto.SessionCreateRequest;
@@ -37,15 +40,18 @@ public class PhotoSessionController {
 	private final PhotoSessionService photoSessionService;
 	private final CompositeImageService compositeImageService;
 	private final VideoService videoService;
+	private final DownloadService downloadService;
 
 	public PhotoSessionController(
 		PhotoSessionService photoSessionService,
 		CompositeImageService compositeImageService,
-		VideoService videoService
+		VideoService videoService,
+		DownloadService downloadService
 	) {
 		this.photoSessionService = photoSessionService;
 		this.compositeImageService = compositeImageService;
 		this.videoService = videoService;
+		this.downloadService = downloadService;
 	}
 
 	@Operation(summary = "세션 생성", description = "프레임을 선택해 새 촬영 세션을 시작합니다")
@@ -85,6 +91,16 @@ public class PhotoSessionController {
 		return compositeImageService.compose(sessionId);
 	}
 
+	@Operation(summary = "합성 이미지 업로드",
+		description = "앱이 직접 만든 최종 스트립을 업로드합니다. 서버 합성(POST /composite)과 같은 자리에 저장되고, QR 다운로드 페이지에 사진으로 노출됩니다")
+	@PostMapping("/{sessionId}/composite/image")
+	public CompositeUploadResponse uploadComposite(
+		@PathVariable UUID sessionId,
+		@RequestPart MultipartFile file
+	) {
+		return compositeImageService.uploadComposite(sessionId, file);
+	}
+
 	@Operation(summary = "촬영 영상 업로드", description = "촬영 과정 영상을 업로드하고 QR코드를 생성합니다")
 	@PostMapping("/{sessionId}/video")
 	public VideoUploadResponse uploadVideo(
@@ -101,11 +117,14 @@ public class PhotoSessionController {
 		SessionStatusResponse status = photoSessionService.getStatus(sessionId);
 		String compositeImageUrl = compositeImageService.getImageUrl(sessionId).orElse(null);
 		Optional<VideoUploadResponse> video = videoService.getVideo(sessionId);
+		// QR 은 영상이 아니라 다운로드 링크에 딸린 것이라, 영상이 없고 사진만 올라온 세션에서도 나온다.
+		Optional<DownloadLinkResponse> link = downloadService.find(sessionId);
 		return new SessionStatusResponse(
 			status.sessionId(), status.status(), status.frameId(),
 			compositeImageUrl,
 			video.map(VideoUploadResponse::videoUrl).orElse(null),
-			video.map(VideoUploadResponse::qrCodeUrl).orElse(null)
+			link.map(DownloadLinkResponse::qrCodeUrl).orElse(null),
+			link.map(DownloadLinkResponse::downloadUrl).orElse(null)
 		);
 	}
 }
