@@ -19,6 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # arm64 실행 이미지의 RUN(useradd, chown)을 돌리기 위한 에뮬레이터.
+      # Gradle 빌드는 Dockerfile 에서 $BUILDPLATFORM 으로 고정해 에뮬레이션을 타지 않는다.
+      - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
@@ -29,10 +33,11 @@ jobs:
 
       # 서버(E2.1.Micro, RAM 1GB)에서 Gradle 빌드를 돌리면 메모리가 모자라므로
       # 이미지는 여기서 만들고 서버는 받아서 띄우기만 한다.
+      # amd64(E2 등 x86)와 arm64(A1) 를 한 태그로 올려, 서버가 자기 아키텍처에 맞는 것을 받는다.
       - uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
