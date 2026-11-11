@@ -30,10 +30,12 @@ public class AuthController {
 	// /login/kakao 가 매칭되지 않고, 변환 실패 예외는 GlobalExceptionHandler 를 타지 않아
 	// 응답이 ErrorResponse 형식을 벗어난다.
 	@Operation(summary = "소셜 로그인",
-		description = "provider 는 kakao 또는 google 입니다. token 은 카카오는 액세스 토큰, 구글은 ID 토큰입니다.")
+		description = "provider 는 kakao, google, apple 입니다. token 은 카카오는 액세스 토큰, "
+			+ "구글과 애플은 ID 토큰입니다. name 은 애플이 최초 로그인에서만 주는 이름입니다.")
 	@PostMapping("/login/{provider}")
 	public LoginResponse login(@PathVariable String provider, @Valid @RequestBody SocialLoginRequest request) {
-		return authService.login(OAuthProvider.from(provider), request.token());
+		return authService.login(
+			OAuthProvider.from(provider), request.token(), request.name(), request.authorizationCode());
 	}
 
 	@Operation(summary = "토큰 재발급",

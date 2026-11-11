@@ -32,6 +32,11 @@ services:
       KAKAO_APP_ID: ${KAKAO_APP_ID}
       KAKAO_ADMIN_KEY: ${KAKAO_ADMIN_KEY}
       GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS}
+      APPLE_CLIENT_IDS: ${APPLE_CLIENT_IDS}
+      # 아래 셋은 탈퇴 시 애플 연결 해제에만 쓴다. 없으면 로그인은 되고 해제만 건너뛴다.
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID}
+      APPLE_KEY_ID: ${APPLE_KEY_ID}
+      APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY}
     depends_on:
       - db
 

@@ -92,12 +92,15 @@ class AuthSecurityIntegrationTest {
 			.andExpect(jsonPath("$.code").value("UNSUPPORTED_OAUTH_PROVIDER"));
 	}
 
+	// 구현체가 생겼으므로 더는 "지원하지 않음" 이 아니다. 아무 문자열이나 보내면
+	// ID 토큰 검증에서 걸려 401 이 와야 한다 — 400 이 온다면 애플 클라이언트가
+	// 레지스트리에 안 올라간 것이다.
 	@Test
-	void 애플은_아직_구현체가_없어_지원하지_않음으로_응답한다() throws Exception {
+	void 애플에_엉터리_토큰을_보내면_토큰_무효로_응답한다() throws Exception {
 		mockMvc.perform(post("/api/auth/login/apple")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"token\":\"whatever\"}"))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value("UNSUPPORTED_OAUTH_PROVIDER"));
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.code").value("INVALID_OAUTH_TOKEN"));
 	}
 }

@@ -26,6 +26,9 @@ public class OAuthConfig {
 	private static final String GOOGLE_JWK_SET_URI = "https://www.googleapis.com/oauth2/v3/certs";
 	private static final Set<String> GOOGLE_ISSUERS =
 		Set.of("https://accounts.google.com", "accounts.google.com");
+	private static final String APPLE_AUTH_BASE_URL = "https://appleid.apple.com";
+	private static final String APPLE_JWK_SET_URI = "https://appleid.apple.com/auth/keys";
+	private static final String APPLE_ISSUER = "https://appleid.apple.com";
 
 	@Bean
 	public RestClient kakaoRestClient(RestClient.Builder builder) {
@@ -43,6 +46,40 @@ public class OAuthConfig {
 			.build();
 		decoder.setJwtValidator(googleTokenValidator(allowedClientIds));
 		return decoder;
+	}
+
+	// 인가 코드 교환과 연결 해제에 쓴다. ID 토큰 검증은 JWKS 라 이 클라이언트를 타지 않는다.
+	@Bean
+	public RestClient appleRestClient(RestClient.Builder builder) {
+		return builder.baseUrl(APPLE_AUTH_BASE_URL).build();
+	}
+
+	@Bean
+	public JwtDecoder appleIdTokenDecoder(OAuthProperties properties) {
+		List<String> allowedClientIds = properties.apple().clientIds();
+		Assert.notEmpty(allowedClientIds, "fourcut.oauth.apple.client-ids 는 비어 있을 수 없습니다");
+
+		// 구글과 같다 — JWKS 는 최초 검증 시점에 가져와 캐시한다.
+		NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(APPLE_JWK_SET_URI)
+			.jwsAlgorithm(SignatureAlgorithm.RS256)
+			.build();
+		decoder.setJwtValidator(appleTokenValidator(allowedClientIds));
+		return decoder;
+	}
+
+	// 테스트에서 직접 검증할 수 있도록 분리했다.
+	static OAuth2TokenValidator<Jwt> appleTokenValidator(List<String> allowedClientIds) {
+		// 애플은 iss 를 한 형태로만 주지만, 그 값이 URL 로 파싱되는 문자열이라 Spring 이
+		// java.net.URL 로 바꿔 넣을 수 있다. 구글에서 겪은 ClassCastException 을 피하려고
+		// 여기서도 Object 로 읽는다.
+		OAuth2TokenValidator<Jwt> issuerValidator = new JwtClaimValidator<Object>(
+			JwtClaimNames.ISS, issuer -> issuer != null && APPLE_ISSUER.equals(issuer.toString()));
+
+		// aud 는 번들 ID 다. 다른 앱이 받은 토큰을 가져와 우리 계정으로 로그인하는 걸 막는다.
+		OAuth2TokenValidator<Jwt> audienceValidator = new JwtClaimValidator<List<String>>(
+			JwtClaimNames.AUD, audience -> audience != null && !Collections.disjoint(audience, allowedClientIds));
+
+		return JwtValidators.createDefaultWithValidators(issuerValidator, audienceValidator);
 	}
 
 	// 테스트에서 직접 검증할 수 있도록 분리했다.

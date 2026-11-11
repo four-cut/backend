@@ -38,10 +38,16 @@ public class AuthService {
 		this.refreshTokenService = refreshTokenService;
 	}
 
-	public LoginResponse login(OAuthProvider provider, String credential) {
-		OAuthUserInfo userInfo = verifyCredential(provider, credential);
+	public LoginResponse login(
+		OAuthProvider provider,
+		String credential,
+		String fallbackNickname,
+		String authorizationCode
+	) {
+		OAuthUserInfo userInfo = withFallbackNickname(verifyCredential(provider, credential), fallbackNickname);
 		MemberService.LoginMember loginMember = findOrCreate(userInfo);
 		Member member = loginMember.member();
+		storeProviderRefreshToken(provider, member.getId(), authorizationCode);
 		log.info("소셜 로그인 성공. provider={} memberId={} newMember={}",
 			provider, member.getId(), loginMember.newMember());
 		return LoginResponse.of(
@@ -71,6 +77,41 @@ public class AuthService {
 
 	public void logout(String refreshToken) {
 		refreshTokenService.revoke(refreshToken);
+	}
+
+	/**
+	 * 탈퇴할 때 제공자 연결을 끊는 데 쓸 토큰을 미리 받아 둔다.
+	 *
+	 * 애플만 해당한다. 다른 제공자는 exchangeRefreshToken 이 null 을 주고 아무 일도 하지 않는다.
+	 *
+	 * 어떤 실패도 로그인을 막지 않는다. 이건 나중을 위한 준비일 뿐인데 여기서 던지면 애플이
+	 * 잠깐 느릴 때 로그인 자체가 안 된다. 실패하면 그 계정은 탈퇴 시 애플 쪽 연결이 남고,
+	 * 사용자가 Apple ID 설정에서 직접 지울 수 있다.
+	 */
+	private void storeProviderRefreshToken(OAuthProvider provider, Long memberId, String authorizationCode) {
+		try {
+			String refreshToken = oAuthClientRegistry.resolve(provider).exchangeRefreshToken(authorizationCode);
+			if (refreshToken != null) {
+				memberService.updateProviderRefreshToken(memberId, refreshToken);
+			}
+		} catch (RuntimeException e) {
+			log.warn("제공자 리프레시 토큰 저장 실패. provider={} memberId={}", provider, memberId, e);
+		}
+	}
+
+	// 애플은 ID 토큰에 이름을 담지 않고 최초 1회 인증에서만 따로 내려준다. 클라이언트가 그때
+	// 같이 보낸 이름을 쓴다. 제공자가 이름을 준 경우(카카오·구글)에는 그쪽이 늘 최신이므로
+	// 건드리지 않는다.
+	private OAuthUserInfo withFallbackNickname(OAuthUserInfo userInfo, String fallbackNickname) {
+		if (userInfo.nickname() != null || fallbackNickname == null || fallbackNickname.isBlank()) {
+			return userInfo;
+		}
+		return new OAuthUserInfo(
+			userInfo.provider(),
+			userInfo.providerId(),
+			userInfo.email(),
+			fallbackNickname.strip(),
+			userInfo.profileImageUrl());
 	}
 
 	private OAuthUserInfo verifyCredential(OAuthProvider provider, String credential) {
