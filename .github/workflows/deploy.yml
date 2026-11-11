@@ -83,20 +83,28 @@ jobs:
           KAKAO_APP_ID: ${{ secrets.KAKAO_APP_ID }}
           KAKAO_ADMIN_KEY: ${{ secrets.KAKAO_ADMIN_KEY }}
           GOOGLE_CLIENT_IDS: ${{ secrets.GOOGLE_CLIENT_IDS }}
+          APPLE_CLIENT_IDS: ${{ secrets.APPLE_CLIENT_IDS }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_S3_BUCKET,JWT_SECRET,KAKAO_APP_ID,KAKAO_ADMIN_KEY,GOOGLE_CLIENT_IDS,GHCR_USER,GHCR_TOKEN
+          envs: DB_USERNAME,DB_PASSWORD,DB_ROOT_PASSWORD,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_S3_BUCKET,JWT_SECRET,KAKAO_APP_ID,KAKAO_ADMIN_KEY,GOOGLE_CLIENT_IDS,APPLE_CLIENT_IDS,APPLE_TEAM_ID,APPLE_KEY_ID,APPLE_PRIVATE_KEY,GHCR_USER,GHCR_TOKEN
           script: |
             set -e
             cd ~/four-cut
-            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\nAWS_ACCESS_KEY_ID=%s\nAWS_SECRET_ACCESS_KEY=%s\nAWS_REGION=%s\nAWS_S3_BUCKET=%s\nJWT_SECRET=%s\nKAKAO_APP_ID=%s\nKAKAO_ADMIN_KEY=%s\nGOOGLE_CLIENT_IDS=%s\n' \
+            # .env 는 한 줄에 하나씩이라 값에 줄바꿈이 있으면 그 뒤가 통째로 깨진다.
+            # APPLE_PRIVATE_KEY 는 시크릿에 .p8 의 base64 본문만 한 줄로 넣어 둔다
+            # (-----BEGIN-----/-----END----- 없이). 서버가 그 형태를 그대로 읽는다.
+            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\nAWS_ACCESS_KEY_ID=%s\nAWS_SECRET_ACCESS_KEY=%s\nAWS_REGION=%s\nAWS_S3_BUCKET=%s\nJWT_SECRET=%s\nKAKAO_APP_ID=%s\nKAKAO_ADMIN_KEY=%s\nGOOGLE_CLIENT_IDS=%s\nAPPLE_CLIENT_IDS=%s\nAPPLE_TEAM_ID=%s\nAPPLE_KEY_ID=%s\nAPPLE_PRIVATE_KEY=%s\n' \
               "$DB_USERNAME" "$DB_PASSWORD" "$DB_ROOT_PASSWORD" \
               "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" "$AWS_REGION" "$AWS_S3_BUCKET" \
-              "$JWT_SECRET" "$KAKAO_APP_ID" "$KAKAO_ADMIN_KEY" "$GOOGLE_CLIENT_IDS" > .env
+              "$JWT_SECRET" "$KAKAO_APP_ID" "$KAKAO_ADMIN_KEY" "$GOOGLE_CLIENT_IDS" \
+              "$APPLE_CLIENT_IDS" "$APPLE_TEAM_ID" "$APPLE_KEY_ID" "$APPLE_PRIVATE_KEY" > .env
             chmod 600 .env
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             # compose 는 build 가 있는 서비스의 pull 실패를 경고로 넘기므로 docker pull 로 직접 받는다.
