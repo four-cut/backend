@@ -72,5 +72,8 @@ fourcut:
       admin-key: ${KAKAO_ADMIN_KEY:}
     google:
       client-ids: ${GOOGLE_CLIENT_IDS:}
+    apple:
+      # 애플 identityToken 의 aud 는 앱의 번들 ID 다 (com.fourcut.app).
+      client-ids: ${APPLE_CLIENT_IDS:}
   auth:
     login-rate-limit-per-minute: ${LOGIN_RATE_LIMIT_PER_MINUTE:20}

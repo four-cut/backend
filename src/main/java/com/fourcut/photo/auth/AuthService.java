@@ -38,8 +38,8 @@ public class AuthService {
 		this.refreshTokenService = refreshTokenService;
 	}
 
-	public LoginResponse login(OAuthProvider provider, String credential) {
-		OAuthUserInfo userInfo = verifyCredential(provider, credential);
+	public LoginResponse login(OAuthProvider provider, String credential, String fallbackNickname) {
+		OAuthUserInfo userInfo = withFallbackNickname(verifyCredential(provider, credential), fallbackNickname);
 		MemberService.LoginMember loginMember = findOrCreate(userInfo);
 		Member member = loginMember.member();
 		log.info("소셜 로그인 성공. provider={} memberId={} newMember={}",
@@ -71,6 +71,21 @@ public class AuthService {
 
 	public void logout(String refreshToken) {
 		refreshTokenService.revoke(refreshToken);
+	}
+
+	// 애플은 ID 토큰에 이름을 담지 않고 최초 1회 인증에서만 따로 내려준다. 클라이언트가 그때
+	// 같이 보낸 이름을 쓴다. 제공자가 이름을 준 경우(카카오·구글)에는 그쪽이 늘 최신이므로
+	// 건드리지 않는다.
+	private OAuthUserInfo withFallbackNickname(OAuthUserInfo userInfo, String fallbackNickname) {
+		if (userInfo.nickname() != null || fallbackNickname == null || fallbackNickname.isBlank()) {
+			return userInfo;
+		}
+		return new OAuthUserInfo(
+			userInfo.provider(),
+			userInfo.providerId(),
+			userInfo.email(),
+			fallbackNickname.strip(),
+			userInfo.profileImageUrl());
 	}
 
 	private OAuthUserInfo verifyCredential(OAuthProvider provider, String credential) {

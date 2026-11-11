@@ -60,10 +60,24 @@ public class Member extends BaseTimeEntity {
 		this.role = MemberRole.USER;
 	}
 
+	/**
+	 * 로그인할 때마다 제공자가 준 프로필로 갱신한다.
+	 *
+	 * null 은 "제공자가 이번에 알려 주지 않았다"는 뜻이라 기존 값을 둔다. 덮어쓰면 애플
+	 * 계정의 이름이 두 번째 로그인에서 지워진다 — 애플은 이름을 최초 1회만 주기 때문이다.
+	 * 대신 사용자가 카카오·구글에서 프로필 사진을 지워도 우리 쪽에는 남는다. 이름이 사라지는
+	 * 쪽이 더 나쁘다고 보고 이렇게 뒀다.
+	 */
 	public void updateProfile(String email, String nickname, String profileImageUrl) {
-		this.email = email;
-		this.nickname = nickname;
-		this.profileImageUrl = profileImageUrl;
+		if (email != null) {
+			this.email = email;
+		}
+		if (nickname != null) {
+			this.nickname = nickname;
+		}
+		if (profileImageUrl != null) {
+			this.profileImageUrl = profileImageUrl;
+		}
 	}
 
 	public void withdraw() {

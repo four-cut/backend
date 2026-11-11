@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "fourcut.oauth")
-public record OAuthProperties(Kakao kakao, Google google) {
+public record OAuthProperties(Kakao kakao, Google google, Apple apple) {
 
 	// appId 는 카카오 개발자 콘솔 > 앱 설정 > 요약 정보의 숫자 앱 ID다. REST API 키가 아니다.
 	// adminKey 는 탈퇴 시 연결 해제(unlink)에만 쓴다.
@@ -13,5 +13,10 @@ public record OAuthProperties(Kakao kakao, Google google) {
 
 	// RN google-signin 이 넘기는 id_token 의 aud. 안드로이드/iOS 에서 값이 달라질 수 있어 목록으로 받는다.
 	public record Google(List<String> clientIds) {
+	}
+
+	// 애플 identityToken 의 aud 는 OAuth 클라이언트 ID 가 아니라 앱의 번들 ID(com.fourcut.app)다.
+	// 나중에 웹이나 안드로이드를 붙이면 Services ID 가 하나 더 생기므로 목록으로 받는다.
+	public record Apple(List<String> clientIds) {
 	}
 }
