@@ -38,6 +38,13 @@ public class MemberService {
 			.orElseGet(() -> new LoginMember(memberRepository.save(toMember(userInfo)), true));
 	}
 
+	// 로그인 흐름에서 제공자 호출을 마친 뒤에 부른다. 토큰 교환이 실패해도 로그인은
+	// 성공해야 하므로 호출부가 결과를 보고 부를지 말지 정한다.
+	@Transactional
+	public void updateProviderRefreshToken(Long memberId, String providerRefreshToken) {
+		getMemberOrThrow(memberId).updateProviderRefreshToken(providerRefreshToken);
+	}
+
 	public MemberResponse getMe(Long memberId) {
 		return MemberResponse.from(getMemberOrThrow(memberId));
 	}
@@ -47,7 +54,8 @@ public class MemberService {
 		Member member = getMemberOrThrow(memberId);
 		member.withdraw();
 		refreshTokenService.revokeAllByMember(memberId);
-		eventPublisher.publishEvent(new MemberWithdrawnEvent(member.getProvider(), member.getProviderId()));
+		eventPublisher.publishEvent(new MemberWithdrawnEvent(
+			member.getProvider(), member.getProviderId(), member.getProviderRefreshToken()));
 		log.info("회원 탈퇴. memberId={} provider={}", memberId, member.getProvider());
 	}
 

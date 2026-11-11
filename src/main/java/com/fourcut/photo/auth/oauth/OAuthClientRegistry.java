@@ -8,8 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
-// APPLE 은 enum 에만 있고 구현체가 없다. 맵 조회가 비면 그대로 UNSUPPORTED_OAUTH_PROVIDER 가 되므로
-// 같은 결과를 내는 스텁 클래스를 따로 두지 않는다. 나중에 OAuthClient 구현 하나만 추가하면 붙는다.
+// 구현체는 스프링이 주입하는 목록에서 모은다. 맵에 없는 제공자는 UNSUPPORTED_OAUTH_PROVIDER 다.
 @Component
 public class OAuthClientRegistry {
 
@@ -28,10 +27,10 @@ public class OAuthClientRegistry {
 		return client;
 	}
 
-	public void unlinkQuietly(OAuthProvider provider, String providerId) {
+	public void unlinkQuietly(OAuthProvider provider, OAuthUnlinkCommand command) {
 		OAuthClient client = clients.get(provider);
 		if (client != null) {
-			client.unlink(providerId);
+			client.unlink(command);
 		}
 	}
 }

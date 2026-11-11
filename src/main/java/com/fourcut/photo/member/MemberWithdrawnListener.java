@@ -1,6 +1,7 @@
 package com.fourcut.photo.member;
 
 import com.fourcut.photo.auth.oauth.OAuthClientRegistry;
+import com.fourcut.photo.auth.oauth.OAuthUnlinkCommand;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -18,6 +19,8 @@ public class MemberWithdrawnListener {
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void unlinkFromProvider(MemberWithdrawnEvent event) {
-		oAuthClientRegistry.unlinkQuietly(event.provider(), event.providerId());
+		oAuthClientRegistry.unlinkQuietly(
+			event.provider(),
+			new OAuthUnlinkCommand(event.providerId(), event.providerRefreshToken()));
 	}
 }

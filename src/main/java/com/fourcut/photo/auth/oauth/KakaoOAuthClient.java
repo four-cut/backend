@@ -74,7 +74,8 @@ public class KakaoOAuthClient implements OAuthClient {
 	}
 
 	@Override
-	public void unlink(String providerId) {
+	public void unlink(OAuthUnlinkCommand command) {
+		String providerId = command.providerId();
 		if (adminKey == null || adminKey.isBlank()) {
 			log.warn("카카오 관리자 키가 설정되지 않아 연결 해제를 건너뜁니다. providerId={}", providerId);
 			return;

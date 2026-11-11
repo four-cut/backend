@@ -41,7 +41,7 @@ class KakaoOAuthClientTest {
 		return new OAuthProperties(
 			new OAuthProperties.Kakao(APP_ID, "admin-key"),
 			new OAuthProperties.Google(List.of("client-id")),
-			new OAuthProperties.Apple(List.of("com.fourcut.app")));
+			new OAuthProperties.Apple(List.of("com.fourcut.app"), null, null, null));
 	}
 
 	private void expectTokenInfo(long appId) {

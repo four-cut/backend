@@ -34,7 +34,8 @@ public class AuthController {
 			+ "구글과 애플은 ID 토큰입니다. name 은 애플이 최초 로그인에서만 주는 이름입니다.")
 	@PostMapping("/login/{provider}")
 	public LoginResponse login(@PathVariable String provider, @Valid @RequestBody SocialLoginRequest request) {
-		return authService.login(OAuthProvider.from(provider), request.token(), request.name());
+		return authService.login(
+			OAuthProvider.from(provider), request.token(), request.name(), request.authorizationCode());
 	}
 
 	@Operation(summary = "토큰 재발급",

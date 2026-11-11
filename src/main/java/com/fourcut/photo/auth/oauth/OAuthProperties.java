@@ -15,8 +15,24 @@ public record OAuthProperties(Kakao kakao, Google google, Apple apple) {
 	public record Google(List<String> clientIds) {
 	}
 
-	// 애플 identityToken 의 aud 는 OAuth 클라이언트 ID 가 아니라 앱의 번들 ID(com.fourcut.app)다.
-	// 나중에 웹이나 안드로이드를 붙이면 Services ID 가 하나 더 생기므로 목록으로 받는다.
-	public record Apple(List<String> clientIds) {
+	/**
+	 * 애플 설정.
+	 *
+	 * clientIds 는 identityToken 의 aud 로 허용할 값이다. OAuth 클라이언트 ID 가 아니라 앱의
+	 * 번들 ID(com.fourcut.app)이고, 웹이나 안드로이드를 붙이면 Services ID 가 늘어나므로 목록이다.
+	 *
+	 * 나머지 셋은 탈퇴 시 연결 해제에만 쓴다. 개발자 콘솔 Keys 에서 Sign in with Apple 키를
+	 * 만들면 .p8 파일과 Key ID 가 나오고, Team ID 는 멤버십 정보에 있다. 셋 중 하나라도 비면
+	 * 로그인은 되지만 탈퇴할 때 애플 쪽 연결이 남는다.
+	 */
+	public record Apple(List<String> clientIds, String teamId, String keyId, String privateKey) {
+
+		public boolean canRevoke() {
+			return notBlank(teamId) && notBlank(keyId) && notBlank(privateKey);
+		}
+
+		private static boolean notBlank(String value) {
+			return value != null && !value.isBlank();
+		}
 	}
 }

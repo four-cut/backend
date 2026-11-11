@@ -26,6 +26,7 @@ public class OAuthConfig {
 	private static final String GOOGLE_JWK_SET_URI = "https://www.googleapis.com/oauth2/v3/certs";
 	private static final Set<String> GOOGLE_ISSUERS =
 		Set.of("https://accounts.google.com", "accounts.google.com");
+	private static final String APPLE_AUTH_BASE_URL = "https://appleid.apple.com";
 	private static final String APPLE_JWK_SET_URI = "https://appleid.apple.com/auth/keys";
 	private static final String APPLE_ISSUER = "https://appleid.apple.com";
 
@@ -45,6 +46,12 @@ public class OAuthConfig {
 			.build();
 		decoder.setJwtValidator(googleTokenValidator(allowedClientIds));
 		return decoder;
+	}
+
+	// 인가 코드 교환과 연결 해제에 쓴다. ID 토큰 검증은 JWKS 라 이 클라이언트를 타지 않는다.
+	@Bean
+	public RestClient appleRestClient(RestClient.Builder builder) {
+		return builder.baseUrl(APPLE_AUTH_BASE_URL).build();
 	}
 
 	@Bean

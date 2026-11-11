@@ -12,9 +12,8 @@ public record SocialLoginRequest(
 	@Schema(description = "카카오는 액세스 토큰, 구글과 애플은 ID 토큰")
 	@NotBlank String token,
 
-	// 애플은 providerId 만으로 연결을 끊을 수 없어 탈퇴 시 이 코드로 얻은 리프레시 토큰이
-	// 필요하다. revoke 호출에 쓸 .p8 키를 아직 발급받지 않아 지금은 받아만 둔다.
-	// TODO 키가 준비되면 이 코드로 리프레시 토큰을 받아 저장하고 탈퇴 시 revoke 를 호출한다.
+	// 애플은 providerId 만으로 연결을 끊을 수 없다. 로그인 때 이 코드를 리프레시 토큰으로
+	// 바꿔 저장해 두었다가 탈퇴할 때 그 토큰으로 /auth/revoke 를 부른다.
 	@Schema(description = "애플 전용. 탈퇴 시 연결 해제에 쓴다")
 	String authorizationCode,
 
